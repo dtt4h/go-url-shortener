@@ -1,0 +1,6 @@
+env: "local"
+storage_path : "./storage/url_shortener.db"
+http_server:
+  adress: "localhost:8080"
+  timeout: 10s
+  idle_timeout: 60s
