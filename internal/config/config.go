@@ -1,6 +1,13 @@
 package config
 
-import "time"
+import (
+	"flag"
+	"os"
+	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
 	Env    string       `yaml:"env" env:"ENV"`
@@ -40,4 +47,34 @@ type URLConfig struct {
 type LogConfig struct {
 	Level        string `yaml:"level" env:"LOG_LEVEL"`
 	ShowPathCall bool   `yaml:"show_path_call" env:"LOG_SHOW_PATH_CALL"`
+}
+
+func MustLoad() *Config {
+	godotenv.Load()
+	configPath := fetchConfigPath()
+	if configPath == "" {
+		panic("config path is empty")
+	}
+	if _, err := os.Stat(configPath); err != nil {
+		panic(err)
+	}
+
+	cfg := &Config{}
+
+	if err := cleanenv.ReadConfig(configPath, cfg); err != nil {
+		panic(err.Error())
+	}
+	return cfg
+}
+
+func fetchConfigPath() (res string) {
+	flag.StringVar(&res, "config", "", "path to config file")
+	flag.Parse()
+	if res == "" {
+		res = os.Getenv("CONFIG_PATH")
+	}
+	if res == "" {
+		res = "configs/config_local.yaml"
+	}
+	return
 }
