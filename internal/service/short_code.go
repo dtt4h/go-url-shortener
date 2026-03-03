@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const shortCodeLength = 0
+const shortCodeLength = 8
 
 const base62Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
