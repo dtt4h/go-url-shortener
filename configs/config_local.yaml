@@ -18,7 +18,7 @@ kafka:
   topic: "url-events"
 
 url:
-  base: "http://localhost:8080"
+  base: "http://localhost:8080/"
   code_length: 8
   code_alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   default_ttl: 87600h

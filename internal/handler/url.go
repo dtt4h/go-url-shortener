@@ -56,7 +56,7 @@ func (h *URLHandler) Create(c *gin.Context) {
 		return
 	}
 
-	shortURL := h.baseURL + "/" + urlEntity.ShortCode
+	shortURL := h.baseURL + urlEntity.ShortCode
 
 	var expiresAt int64
 	if urlEntity.ExpiresAt != nil {

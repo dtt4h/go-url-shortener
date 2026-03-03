@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/dtt4h/go-url-shortener/internal/config"
 	"github.com/dtt4h/go-url-shortener/internal/handler"
@@ -52,12 +53,17 @@ func run() error {
 	router.Use(middleware.Recovery(log))
 	router.Use(middleware.RateLimiter())
 
-	v1 := router.Group("/api/v1")
+	router.GET("/", func(c *gin.Context) {
+		c.File(filepath.Join("web", "index.html"))
+	})
+
+	api := router.Group("/api/v1")
 	{
-		v1.POST("/shorten", urlHandler.Create)
-		v1.GET("/:code", urlHandler.Get)
-		v1.DELETE("/:code", urlHandler.Delete)
+		api.POST("/shorten", urlHandler.Create)
 	}
+
+	router.GET("/:code", urlHandler.Get)
+	router.DELETE("/:code", urlHandler.Delete)
 
 	log.Info(context.Background(), "Server starting", "address", cfg.Server.Address)
 	if err := http.ListenAndServe(cfg.Server.Address, router); err != nil {

@@ -2,7 +2,7 @@ package service
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"math/big"
 	"strings"
 )
 
@@ -11,20 +11,13 @@ const shortCodeLength = 8
 const base62Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func GenerateShortCode(originalURL string) string {
-	bytes := make([]byte, 0)
-	rand.Read(bytes)
+	var result strings.Builder
+	result.Grow(shortCodeLength)
 
-	encoded := base64.URLEncoding.EncodeToString(bytes)
-	encoded = strings.ReplaceAll(encoded, "+", "")
-	encoded = strings.ReplaceAll(encoded, "/", "")
-	encoded = strings.ReplaceAll(encoded, "=", "")
-
-	if len(encoded) > shortCodeLength {
-		encoded = encoded[:shortCodeLength]
+	for i := 0; i < shortCodeLength; i++ {
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(base62Chars))))
+		result.WriteByte(base62Chars[n.Int64()])
 	}
 
-	for len(encoded) < shortCodeLength {
-		encoded += string(base62Chars[0])
-	}
-	return encoded
+	return result.String()
 }
