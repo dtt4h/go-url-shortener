@@ -17,11 +17,12 @@ type URLService interface {
 }
 
 type urlService struct {
-	repo urlRepo.URLRepository
+	repo   urlRepo.URLRepository
+	events EventService
 }
 
-func NewURLService(repo urlRepo.URLRepository) URLService {
-	return &urlService{repo: repo}
+func NewURLService(repo urlRepo.URLRepository, events EventService) URLService {
+	return &urlService{repo: repo, events: events}
 }
 
 func (s *urlService) CreateShortURL(ctx context.Context, originalURL string) (*model.URL, error) {
@@ -41,7 +42,17 @@ func (s *urlService) CreateShortURL(ctx context.Context, originalURL string) (*m
 		ClickCount:  0,
 	}
 
-	return s.repo.Save(ctx, url)
+	url, err := s.repo.Save(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = s.events.PublishURLCreated(ctx, model.URLEvent{
+		ShortCode:   url.ShortCode,
+		OriginalURL: url.OriginalURL,
+	})
+
+	return url, nil
 }
 
 func (s *urlService) GetByCode(ctx context.Context, code string) (*model.URL, error) {
@@ -66,7 +77,11 @@ func (s *urlService) Delete(ctx context.Context, id int64) error {
 	if url == nil {
 		return fmt.Errorf("not found")
 	}
-	// TODO: Добавить логирование удаления (для аудита)
+
+	_ = s.events.PublishURLDeleted(ctx, model.URLEvent{
+		ShortCode:   url.ShortCode,
+		OriginalURL: url.OriginalURL,
+	})
 
 	return s.repo.Delete(ctx, id)
 }
