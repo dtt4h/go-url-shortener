@@ -12,8 +12,8 @@ import (
 type URLService interface {
 	CreateShortURL(ctx context.Context, originalURL string) (*model.URL, error)
 	GetByCode(ctx context.Context, code string) (*model.URL, error)
-	//Save(ctx context.Context, id int64) (*model.URL, error)
-	Delete(ctx context.Context, id int64) error
+	DeleteByCode(ctx context.Context, code string) error
+	IncrementClickCount(ctx context.Context, code string) error
 }
 
 type urlService struct {
@@ -26,11 +26,13 @@ func NewURLService(repo urlRepo.URLRepository, events EventService) URLService {
 }
 
 func (s *urlService) CreateShortURL(ctx context.Context, originalURL string) (*model.URL, error) {
-	// TODO: Проверить, существует ли уже такой originalURL в БД перед созданием нового
-	// TODO: Добавить обработку случая, когда сгенерированный код уже существует (коллизия)
-
 	if err := Validate(originalURL); err != nil {
 		return nil, err
+	}
+
+	existing, err := s.repo.FindByOriginalURL(ctx, originalURL)
+	if err == nil && existing != nil {
+		return existing, nil
 	}
 
 	code := GenerateShortCode(originalURL)
@@ -42,7 +44,7 @@ func (s *urlService) CreateShortURL(ctx context.Context, originalURL string) (*m
 		ClickCount:  0,
 	}
 
-	url, err := s.repo.Save(ctx, url)
+	url, err = s.repo.Save(ctx, url)
 	if err != nil {
 		return nil, err
 	}
@@ -68,13 +70,9 @@ func (s *urlService) GetByCode(ctx context.Context, code string) (*model.URL, er
 	return url, nil
 }
 
-func (s *urlService) Delete(ctx context.Context, id int64) error {
-	url, err := s.repo.FindByID(ctx, id)
+func (s *urlService) DeleteByCode(ctx context.Context, code string) error {
+	url, err := s.repo.FindByCode(ctx, code)
 	if err != nil {
-		return err
-	}
-
-	if url == nil {
 		return fmt.Errorf("not found")
 	}
 
@@ -83,5 +81,14 @@ func (s *urlService) Delete(ctx context.Context, id int64) error {
 		OriginalURL: url.OriginalURL,
 	})
 
-	return s.repo.Delete(ctx, id)
+	return s.repo.Delete(ctx, url.ID)
+}
+
+func (s *urlService) IncrementClickCount(ctx context.Context, code string) error {
+	url, err := s.repo.FindByCode(ctx, code)
+	if err != nil {
+		return fmt.Errorf("not found")
+	}
+
+	return s.repo.IncrementClickCount(ctx, url.ID)
 }

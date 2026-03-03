@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
@@ -49,25 +51,28 @@ type LogConfig struct {
 	ShowPathCall bool   `yaml:"show_path_call" env:"LOG_SHOW_PATH_CALL"`
 }
 
-func MustLoad() *Config {
+var ErrEmptyConfigPath = errors.New("config path is empty")
+
+func Load() (*Config, error) {
 	godotenv.Load()
 	configPath := fetchConfigPath()
 	if configPath == "" {
-		panic("config path is empty")
+		return nil, ErrEmptyConfigPath
 	}
 	if _, err := os.Stat(configPath); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("config file not found: %w", err)
 	}
 
 	cfg := &Config{}
 
 	if err := cleanenv.ReadConfig(configPath, cfg); err != nil {
-		panic(err.Error())
+		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
-	return cfg
+	return cfg, nil
 }
 
-func fetchConfigPath() (res string) {
+func fetchConfigPath() string {
+	var res string
 	flag.StringVar(&res, "config", "", "path to config file")
 	flag.Parse()
 	if res == "" {
@@ -76,5 +81,5 @@ func fetchConfigPath() (res string) {
 	if res == "" {
 		res = "configs/config_local.yaml"
 	}
-	return
+	return res
 }

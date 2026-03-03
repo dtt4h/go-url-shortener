@@ -12,8 +12,10 @@ import (
 type URLRepository interface {
 	FindByID(ctx context.Context, id int64) (*model.URL, error)
 	FindByCode(ctx context.Context, code string) (*model.URL, error)
+	FindByOriginalURL(ctx context.Context, originalURL string) (*model.URL, error)
 	Save(ctx context.Context, url *model.URL) (*model.URL, error)
 	Delete(ctx context.Context, id int64) error
+	IncrementClickCount(ctx context.Context, id int64) error
 }
 
 type urlRepository struct {
@@ -40,11 +42,7 @@ func (r *urlRepository) FindByID(ctx context.Context, id int64) (*model.URL, err
 		return nil, fmt.Errorf("find url: %w", err)
 	}
 
-	if expiresAt != nil {
-		ts := time.Unix(*expiresAt, 0)
-		url.ExpiresAt = &ts
-	}
-
+	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return &url, nil
 }
 
@@ -61,14 +59,10 @@ func (r *urlRepository) FindByCode(ctx context.Context, code string) (*model.URL
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("find by code :%w", err)
+		return nil, fmt.Errorf("find by code: %w", err)
 	}
 
-	if expiresAt != nil {
-		ts := time.Unix(*expiresAt, 0)
-		url.ExpiresAt = &ts
-	}
-
+	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return &url, nil
 }
 func (r *urlRepository) Save(ctx context.Context, url *model.URL) (*model.URL, error) {
@@ -85,13 +79,10 @@ func (r *urlRepository) Save(ctx context.Context, url *model.URL) (*model.URL, e
 		url.ClickCount).Scan(&url.ID)
 
 	if err != nil {
-		return nil, fmt.Errorf("save by : %w", err)
+		return nil, fmt.Errorf("save url: %w", err)
 	}
 
-	if expiresAt != nil {
-		ts := time.Unix(*expiresAt, 0)
-		url.ExpiresAt = &ts
-	}
+	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return url, nil
 }
 
@@ -100,7 +91,45 @@ func (r *urlRepository) Delete(ctx context.Context, id int64) error {
 
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("deleted url: %w", err)
+		return fmt.Errorf("delete url: %w", err)
 	}
 	return nil
+}
+
+func (r *urlRepository) FindByOriginalURL(ctx context.Context, originalURL string) (*model.URL, error) {
+	query := `SELECT id, short_code, original_url, created_at, expires_at, click_count
+				FROM urls WHERE original_url = $1`
+
+	var url model.URL
+	var expiresAt *int64
+
+	err := r.db.QueryRow(ctx, query, originalURL).Scan(
+		&url.ID, &url.ShortCode, &url.OriginalURL,
+		&url.CreatedAt, &expiresAt, &url.ClickCount,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("find by original url: %w", err)
+	}
+
+	url.ExpiresAt = parseExpiresAt(expiresAt)
+	return &url, nil
+}
+
+func (r *urlRepository) IncrementClickCount(ctx context.Context, id int64) error {
+	query := `UPDATE urls SET click_count = click_count + 1 WHERE id = $1`
+
+	_, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("increment click count: %w", err)
+	}
+	return nil
+}
+
+func parseExpiresAt(ts *int64) *time.Time {
+	if ts == nil {
+		return nil
+	}
+	parsed := time.Unix(*ts, 0)
+	return &parsed
 }

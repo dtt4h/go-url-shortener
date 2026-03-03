@@ -8,5 +8,5 @@ type URL struct {
 	OriginalURL string
 	CreatedAt   time.Time
 	ExpiresAt   *time.Time
-	ClickCount  int
+	ClickCount  int64
 }
