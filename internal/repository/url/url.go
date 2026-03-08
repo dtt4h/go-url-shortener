@@ -2,10 +2,12 @@ package url
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/dtt4h/go-url-shortener/internal/model"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -39,6 +41,9 @@ func (r *urlRepository) FindByID(ctx context.Context, id int64) (*model.URL, err
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("find url: %w", err)
 	}
 
@@ -59,6 +64,9 @@ func (r *urlRepository) FindByCode(ctx context.Context, code string) (*model.URL
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("find by code: %w", err)
 	}
 
@@ -109,6 +117,9 @@ func (r *urlRepository) FindByOriginalURL(ctx context.Context, originalURL strin
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("find by original url: %w", err)
 	}
 

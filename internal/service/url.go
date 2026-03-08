@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/dtt4h/go-url-shortener/internal/model"
@@ -64,7 +63,7 @@ func (s *urlService) GetByCode(ctx context.Context, code string) (*model.URL, er
 	}
 
 	if url == nil {
-		return nil, fmt.Errorf("not found")
+		return nil, ErrNotFound
 	}
 
 	return url, nil
@@ -73,7 +72,11 @@ func (s *urlService) GetByCode(ctx context.Context, code string) (*model.URL, er
 func (s *urlService) DeleteByCode(ctx context.Context, code string) error {
 	url, err := s.repo.FindByCode(ctx, code)
 	if err != nil {
-		return fmt.Errorf("not found")
+		return err
+	}
+
+	if url == nil {
+		return ErrNotFound
 	}
 
 	_ = s.events.PublishURLDeleted(ctx, model.URLEvent{
@@ -87,7 +90,11 @@ func (s *urlService) DeleteByCode(ctx context.Context, code string) error {
 func (s *urlService) IncrementClickCount(ctx context.Context, code string) error {
 	url, err := s.repo.FindByCode(ctx, code)
 	if err != nil {
-		return fmt.Errorf("not found")
+		return err
+	}
+
+	if url == nil {
+		return ErrNotFound
 	}
 
 	return s.repo.IncrementClickCount(ctx, url.ID)

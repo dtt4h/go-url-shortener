@@ -38,6 +38,7 @@ var (
 	ErrURLTooLong        = &ValidationError{Code: "URL_TOO_LONG", Message: "URL exceeds maximum length"}
 	ErrInvalidURL        = &ValidationError{Code: "INVALID_URL", Message: "Invalid URL format"}
 	ErrUnsupportedScheme = &ValidationError{Code: "UNSUPPORTED_SCHEME", Message: "Only http and https are allowed"}
+	ErrNotFound          = &ValidationError{Code: "NOT_FOUND", Message: "URL not found"}
 )
 
 type ValidationError struct {
