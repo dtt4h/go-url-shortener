@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/dtt4h/go-url-shortener/internal/logger"
 	"github.com/dtt4h/go-url-shortener/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/skip2/go-qrcode"
 )
 
 type URLHandler struct {
@@ -80,8 +82,13 @@ func (h *URLHandler) Get(c *gin.Context) {
 
 	url, err := h.service.GetByCode(c.Request.Context(), code)
 	if err != nil {
-		h.log.Warn(c.Request.Context(), "url not found", "code", code)
-		c.JSON(http.StatusNotFound, ErrorResponse{Error: ErrNotFound.Error()})
+		if errors.Is(err, service.ErrNotFound) || err.Error() == "not found" {
+			h.log.Warn(c.Request.Context(), "url not found", "code", code)
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: ErrNotFound.Error()})
+			return
+		}
+		h.log.Error(c.Request.Context(), "get url failed", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: ErrInternal.Error()})
 		return
 	}
 
@@ -92,7 +99,7 @@ func (h *URLHandler) Get(c *gin.Context) {
 	}
 
 	go func() {
-		_ = h.service.IncrementClickCount(c.Request.Context(), code)
+		_ = h.service.IncrementClickCount(context.Background(), code)
 	}()
 
 	h.log.Info(c.Request.Context(), "redirect",
@@ -109,11 +116,51 @@ func (h *URLHandler) Delete(c *gin.Context) {
 
 	err := h.service.DeleteByCode(c.Request.Context(), code)
 	if err != nil {
-		h.log.Warn(c.Request.Context(), "delete failed", "code", code, "error", err.Error())
-		c.JSON(http.StatusNotFound, ErrorResponse{Error: ErrNotFound.Error()})
+		if errors.Is(err, service.ErrNotFound) || err.Error() == "not found" {
+			h.log.Warn(c.Request.Context(), "delete failed", "code", code, "error", err.Error())
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: ErrNotFound.Error()})
+			return
+		}
+		h.log.Error(c.Request.Context(), "delete failed", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: ErrInternal.Error()})
 		return
 	}
 
 	h.log.Info(c.Request.Context(), "url deleted", "code", code)
 	c.Status(http.StatusNoContent)
+}
+
+func (h *URLHandler) GetQRCode(c *gin.Context) {
+	code := c.Param("code")
+
+	url, err := h.service.GetByCode(c.Request.Context(), code)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) || err.Error() == "not found" {
+			h.log.Warn(c.Request.Context(), "url not found for QR", "code", code)
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: ErrNotFound.Error()})
+			return
+		}
+		h.log.Error(c.Request.Context(), "get url for QR failed", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: ErrInternal.Error()})
+		return
+	}
+
+	if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
+		h.log.Warn(c.Request.Context(), "url expired for QR", "code", code)
+		c.JSON(http.StatusGone, ErrorResponse{Error: ErrLinkExpired.Error()})
+		return
+	}
+
+	shortURL := h.baseURL + code
+
+	png, err := qrcode.Encode(shortURL, qrcode.Medium, 256)
+	if err != nil {
+		h.log.Error(c.Request.Context(), "qr generation failed", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: ErrInternal.Error()})
+		return
+	}
+
+	h.log.Info(c.Request.Context(), "qr generated", "code", code)
+
+	c.Data(http.StatusOK, "image/png", png)
 }

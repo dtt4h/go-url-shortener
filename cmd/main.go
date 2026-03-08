@@ -64,9 +64,11 @@ func run() error {
 
 	router.GET("/:code", urlHandler.Get)
 	router.DELETE("/:code", urlHandler.Delete)
+	router.GET("/:code/qr", urlHandler.GetQRCode)
 
 	log.Info(context.Background(), "Server starting", "address", cfg.Server.Address)
 	if err := http.ListenAndServe(cfg.Server.Address, router); err != nil {
+		log.Error(context.Background(), "server error", "error", err.Error())
 		return errors.New("failed to start server")
 	}
 
