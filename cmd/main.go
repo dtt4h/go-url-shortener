@@ -49,6 +49,7 @@ func run() error {
 
 	router := gin.New()
 
+	router.Use(middleware.CORS())
 	router.Use(middleware.Logger(log))
 	router.Use(middleware.Recovery(log))
 	router.Use(middleware.RateLimiter())
