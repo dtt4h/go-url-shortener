@@ -31,11 +31,14 @@ header{
   width: auto;
   height: 68px;
   .url-input{
-    background-color: $whitePunk;
+    background-color: white;
     box-sizing: border-box;
     padding-left: 26px;
     border: none;
     flex: 1;
+    font-family: $inter;
+    font-size: 14px;
+    color: $lightCarmine;
   }
   .submit-button{
     min-width: 156px;
@@ -62,8 +65,49 @@ header{
 }
 
 .result-container{
+  display: none;
+}
+
+.result-container.is-active{
+  background-color: white;
   border-radius: 10px;
   border: 1px solid red;
   width: 466px;
   height: 116px;
+  display: flex;
+  flex-direction: row;
+  padding-top: 24px;
+  padding-left: 24px;
+}
+
+.urlResult-container{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.urlContainer{
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+.copy-button{
+  width: 100px;
+  height: 36px;
+  border: 1px solid $oldRose;
+  border-radius: 10px;
+  background-color: white;
+  font-family: $inter;
+  font-size: 14px;
+  color: black;
+  &:active{
+      background-color: $lightCarmine;
+    }
+    &:hover{
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    &:focus {
+      outline: 2px solid #ffaa00;
+      outline-offset: 2px;
+    }
 }
