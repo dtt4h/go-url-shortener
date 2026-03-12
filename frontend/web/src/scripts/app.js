@@ -48,7 +48,7 @@ const createShortUrl = (newPost) => {
       }
     })
     .then((data)=> {
-      currentShortUrl = "click.ru/"+(data.short_url.split("/")).pop();
+      currentShortUrl = data.short_url;
       urlResult.textContent = currentShortUrl;
       qrCode.src= (data.short_url + "/qr").trim();
       stringLink.href=currentShortUrl;
