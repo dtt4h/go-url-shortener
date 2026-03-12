@@ -4,7 +4,7 @@ server:
   address: ":8080"
 
 db:
-  url: "postgres://postgres:postgres@localhost:5432/url_shortener"
+  url: "postgres://postgres:postgres@postgres:5432/url_shortener"
   name: "url_shortener"
   password: "postgres"
   max_opens_conns: 10
@@ -14,7 +14,7 @@ db:
 
 kafka:
   brokers:
-    - "localhost:9092"
+    - "kafka:9092"
   topic: "url-events"
 
 url:
