@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"path/filepath"
 
 	"github.com/dtt4h/go-url-shortener/internal/config"
 	"github.com/dtt4h/go-url-shortener/internal/handler"
@@ -55,7 +54,7 @@ func run() error {
 	router.Use(middleware.RateLimiter())
 
 	router.GET("/", func(c *gin.Context) {
-		c.File(filepath.Join("web", "index.html"))
+		c.File("web/index.html")
 	})
 
 	api := router.Group("/api/v1")

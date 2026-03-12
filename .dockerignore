@@ -12,10 +12,6 @@
 README.md
 LICENSE
 
-# Frontend build (build separately)
-css/
-web/
-
 # Go workspace
 go.work
 
@@ -25,3 +21,6 @@ go.work
 
 # Logs
 *.log
+
+# Docker
+docker-compose.override.yml

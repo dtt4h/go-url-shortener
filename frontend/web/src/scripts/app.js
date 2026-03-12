@@ -32,7 +32,7 @@ async function copyUrl() {
 
 
 const createShortUrl = (newPost) => { 
-  return fetch("http://127.0.0.1:8080/api/v1/shorten", {
+  return fetch("/api/v1/shorten", {
       method: "POST",
       body: JSON.stringify(newPost),
       headers: {
