@@ -2,6 +2,8 @@ const formElement = document.getElementById("mainForm");
 const urlString = document.getElementById("urlString");
 const resultContainer = document.getElementById("resultContainer");
 const copyButton = document.getElementById("copyButton");
+const qrCode = document.getElementById("qrCode");
+const link = document.getElementById("stringLink");
 let currentShortUrl;
 
 const urlResult = document.querySelector(".urlResult");
@@ -28,6 +30,7 @@ async function copyUrl() {
 }
 
 
+
 const createShortUrl = (newPost) => { 
   return fetch("http://127.0.0.1:8080/api/v1/shorten", {
       method: "POST",
@@ -47,6 +50,8 @@ const createShortUrl = (newPost) => {
     .then((data)=> {
       currentShortUrl = "click.ru/"+(data.short_url.split("/")).pop();
       urlResult.textContent = currentShortUrl;
+      qrCode.src= (data.short_url + "/qr").trim();
+      stringLink.href=currentShortUrl;
       shortResultContainer();
     }) //заменить клилкюрл на нашу тему
     .catch((err) => {
