@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/dtt4h/go-url-shortener/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -33,11 +32,10 @@ func (r *urlRepository) FindByID(ctx context.Context, id int64) (*model.URL, err
 				FROM urls WHERE id = $1`
 
 	var url model.URL
-	var expiresAt *int64
 
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&url.ID, &url.ShortCode, &url.OriginalURL,
-		&url.CreatedAt, &expiresAt, &url.ClickCount,
+		&url.CreatedAt, &url.ExpiresAt, &url.ClickCount,
 	)
 
 	if err != nil {
@@ -47,7 +45,6 @@ func (r *urlRepository) FindByID(ctx context.Context, id int64) (*model.URL, err
 		return nil, fmt.Errorf("find url: %w", err)
 	}
 
-	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return &url, nil
 }
 
@@ -56,11 +53,10 @@ func (r *urlRepository) FindByCode(ctx context.Context, code string) (*model.URL
 				FROM urls WHERE short_code = $1`
 
 	var url model.URL
-	var expiresAt *int64
 
 	err := r.db.QueryRow(ctx, query, code).Scan(
 		&url.ID, &url.ShortCode, &url.OriginalURL,
-		&url.CreatedAt, &expiresAt, &url.ClickCount,
+		&url.CreatedAt, &url.ExpiresAt, &url.ClickCount,
 	)
 
 	if err != nil {
@@ -70,27 +66,23 @@ func (r *urlRepository) FindByCode(ctx context.Context, code string) (*model.URL
 		return nil, fmt.Errorf("find by code: %w", err)
 	}
 
-	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return &url, nil
 }
 func (r *urlRepository) Save(ctx context.Context, url *model.URL) (*model.URL, error) {
 	query := `INSERT INTO urls(short_code, original_url, created_at, expires_at, click_count) 
 				VALUES ($1, $2, $3, $4, $5) RETURNING id`
 
-	var expiresAt *int64
-
 	err := r.db.QueryRow(ctx, query,
 		url.ShortCode,
 		url.OriginalURL,
 		url.CreatedAt,
-		expiresAt,
+		url.ExpiresAt,
 		url.ClickCount).Scan(&url.ID)
 
 	if err != nil {
 		return nil, fmt.Errorf("save url: %w", err)
 	}
 
-	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return url, nil
 }
 
@@ -109,11 +101,10 @@ func (r *urlRepository) FindByOriginalURL(ctx context.Context, originalURL strin
 				FROM urls WHERE original_url = $1`
 
 	var url model.URL
-	var expiresAt *int64
 
 	err := r.db.QueryRow(ctx, query, originalURL).Scan(
 		&url.ID, &url.ShortCode, &url.OriginalURL,
-		&url.CreatedAt, &expiresAt, &url.ClickCount,
+		&url.CreatedAt, &url.ExpiresAt, &url.ClickCount,
 	)
 
 	if err != nil {
@@ -123,7 +114,6 @@ func (r *urlRepository) FindByOriginalURL(ctx context.Context, originalURL strin
 		return nil, fmt.Errorf("find by original url: %w", err)
 	}
 
-	url.ExpiresAt = parseExpiresAt(expiresAt)
 	return &url, nil
 }
 
@@ -135,12 +125,4 @@ func (r *urlRepository) IncrementClickCount(ctx context.Context, id int64) error
 		return fmt.Errorf("increment click count: %w", err)
 	}
 	return nil
-}
-
-func parseExpiresAt(ts *int64) *time.Time {
-	if ts == nil {
-		return nil
-	}
-	parsed := time.Unix(*ts, 0)
-	return &parsed
 }

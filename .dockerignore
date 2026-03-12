@@ -1,0 +1,27 @@
+# Git
+.git
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Docs
+README.md
+LICENSE
+
+# Frontend build (build separately)
+css/
+web/
+
+# Go workspace
+go.work
+
+# Local env
+.env
+.env.local
+
+# Logs
+*.log
