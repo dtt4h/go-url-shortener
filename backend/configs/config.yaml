@@ -1,26 +1,26 @@
 env: "production"
 
 server:
-  address: ${SERVER_ADDRESS}
+  address: ":8080"
 
 db:
-  url: ${DB_URL}
-  name: ${DB_NAME}
-  password: ${DB_PASSWORD}
-  max_opens_conns: ${DB_MAX_OPENS_CONNS}
-  max_idle_conns: ${DB_MAX_IDLE_CONNS}
-  conn_max_lifetime: ${DB_CONN_MAX_LIFETIME}
-  conn_max_idle: ${DB_CONN_MAX_IDLE}
+  url: "postgres://postgres:postgres@postgres:5432/url_shortener"
+  name: "url_shortener"
+  password: "postgres"
+  max_opens_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: "5m"
+  conn_max_idle: "1m"
 
 url:
-  base: ${URL_BASE}
-  code_length: ${URL_CODE_LENGTH}
-  code_alphabet: ${URL_CODE_ALPHABET}
-  default_ttl: ${URL_DEFAULT_TTL}
+  base: "http://141.105.66.44:8080"
+  code_length: 8
+  code_alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  default_ttl: "87600h"
 
 logger:
-  level: ${LOG_LEVEL}
-  show_path_call: ${LOG_SHOW_PATH_CALL}
+  level: "info"
+  show_path_call: false
 
 cors:
-  allowed_origin: ${CORS_ALLOWED_ORIGIN}
+  allowed_origin: "*"
