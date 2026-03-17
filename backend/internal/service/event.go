@@ -58,3 +58,21 @@ func (s *eventService) PublishURLDeleted(ctx context.Context, event model.URLEve
 func (s *eventService) Close() error {
 	return s.writer.Close()
 }
+
+type noOpEventService struct{}
+
+func NewNoOpEventService() EventService {
+	return &noOpEventService{}
+}
+
+func (s *noOpEventService) PublishURLCreated(ctx context.Context, event model.URLEvent) error {
+	return nil
+}
+
+func (s *noOpEventService) PublishURLDeleted(ctx context.Context, event model.URLEvent) error {
+	return nil
+}
+
+func (s *noOpEventService) Close() error {
+	return nil
+}

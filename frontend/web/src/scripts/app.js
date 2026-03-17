@@ -31,8 +31,10 @@ async function copyUrl() {
 
 
 
+const API_BASE = window.VERCEL_URL || window.location.origin;
+
 const createShortUrl = (newPost) => { 
-  return fetch("/api/v1/shorten", {
+  return fetch(`${API_BASE}/api/v1/shorten`, {
       method: "POST",
       body: JSON.stringify(newPost),
       headers: {

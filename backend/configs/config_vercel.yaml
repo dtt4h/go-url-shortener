@@ -1,0 +1,26 @@
+env: "production"
+
+server:
+  address: ":8080"
+
+db:
+  url: ${DB_URL}
+  name: ${DB_NAME}
+  password: ${DB_PASSWORD}
+  max_opens_conns: ${DB_MAX_OPENS_CONNS}
+  max_idle_conns: ${DB_MAX_IDLE_CONNS}
+  conn_max_lifetime: ${DB_CONN_MAX_LIFETIME}
+  conn_max_idle: ${DB_CONN_MAX_IDLE}
+
+url:
+  base: ${URL_BASE}
+  code_length: ${URL_CODE_LENGTH}
+  code_alphabet: ${URL_CODE_ALPHABET}
+  default_ttl: ${URL_DEFAULT_TTL}
+
+logger:
+  level: ${LOG_LEVEL}
+  show_path_call: ${LOG_SHOW_PATH_CALL}
+
+cors:
+  allowed_origin: ${CORS_ALLOWED_ORIGIN}

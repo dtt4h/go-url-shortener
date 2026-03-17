@@ -15,9 +15,9 @@ type Config struct {
 	Env    string       `yaml:"env" env:"ENV"`
 	Server ServerConfig `yaml:"server"`
 	DB     DBConfig     `yaml:"db"`
-	Kafka  KafkaConfig  `yaml:"kafka"`
 	URL    URLConfig    `yaml:"url"`
 	Logger LogConfig    `yaml:"logger"`
+	CORS   CORSConfig   `yaml:"cors"`
 }
 
 type ServerConfig struct {
@@ -49,6 +49,10 @@ type URLConfig struct {
 type LogConfig struct {
 	Level        string `yaml:"level" env:"LOG_LEVEL"`
 	ShowPathCall bool   `yaml:"show_path_call" env:"LOG_SHOW_PATH_CALL"`
+}
+
+type CORSConfig struct {
+	AllowedOrigin string `yaml:"allowed_origin" env:"CORS_ALLOWED_ORIGIN"`
 }
 
 var ErrEmptyConfigPath = errors.New("config path is empty")

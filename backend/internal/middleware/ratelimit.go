@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -16,10 +17,40 @@ type rateLimiter struct {
 }
 
 func newRateLimiter(limit int, window time.Duration) *rateLimiter {
-	return &rateLimiter{
+	rl := &rateLimiter{
 		requests: make(map[string][]time.Time),
 		limit:    limit,
 		window:   window,
+	}
+
+	// Запускаем cleanup каждые 5 минут
+	go rl.cleanup(5 * time.Minute)
+
+	return rl
+}
+
+func (r *rateLimiter) cleanup(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for range ticker.C {
+		r.mu.Lock()
+		now := time.Now()
+		windowStart := now.Add(-r.window)
+
+		for key, times := range r.requests {
+			var valid []time.Time
+			for _, t := range times {
+				if t.After(windowStart) {
+					valid = append(valid, t)
+				}
+			}
+
+			if len(valid) == 0 {
+				delete(r.requests, key)
+			} else {
+				r.requests[key] = valid
+			}
+		}
+		r.mu.Unlock()
 	}
 }
 
@@ -48,7 +79,26 @@ func (r *rateLimiter) allow(key string) bool {
 	return true
 }
 
-var limiter = newRateLimiter(100, time.Minute)
+// Конфигурация rate limiter через переменные окружения
+var (
+	rateLimitLimit  = 100
+	rateLimitWindow = time.Minute
+)
+
+func init() {
+	if v := getEnv("RATE_LIMIT_REQUESTS", "100"); v != "" {
+		if parsed, err := parseInt(v); err == nil && parsed > 0 {
+			rateLimitLimit = parsed
+		}
+	}
+	if v := getEnv("RATE_LIMIT_WINDOW_SECONDS", "60"); v != "" {
+		if parsed, err := parseInt(v); err == nil && parsed > 0 {
+			rateLimitWindow = time.Duration(parsed) * time.Second
+		}
+	}
+}
+
+var limiter = newRateLimiter(rateLimitLimit, rateLimitWindow)
 
 func RateLimiter() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -63,4 +113,22 @@ func RateLimiter() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if v := getEnvFunc(key); v != "" {
+		return v
+	}
+	return defaultValue
+}
+
+var getEnvFunc = func(key string) string {
+	// Переопределяется в тестах
+	return ""
+}
+
+var parseInt = func(s string) (int, error) {
+	var n int
+	_, err := fmt.Sscanf(s, "%d", &n)
+	return n, err
 }

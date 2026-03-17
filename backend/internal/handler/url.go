@@ -99,7 +99,11 @@ func (h *URLHandler) Get(c *gin.Context) {
 	}
 
 	go func() {
-		_ = h.service.IncrementClickCount(context.Background(), code)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := h.service.IncrementClickCount(ctx, code); err != nil {
+			h.log.Error(c.Request.Context(), "failed to increment click count", "code", code, "error", err.Error())
+		}
 	}()
 
 	h.log.Info(c.Request.Context(), "redirect",
