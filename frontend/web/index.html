@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+
+  <title>URL Shortener</title>
+
+</head>
+<body>
+  <header>
+    <div class="headerContainer">
+      <a href="/" class="logo">
+        <img src="/src/images/logo.svg" alt="scissors" class="logo__img">
+        <img src="/src/images/logoName.svg" alt="url Shortener" class="logo__name">
+      </a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <form class="form__container" id="mainForm">
+        <div class="inputContainer">
+          <input 
+            type="url"
+            class="url-input"
+            id="urlString"
+            name="url"
+            placeholder="Enter URL"
+            pattern="https?://.+"
+            title="URL must starting with http:// or https://"
+            required
+          >
+          <button class="submit-button">
+            <p>Shorten</p>
+          </button>
+        </div>
+      </form>
+      <div class="result-container" id="resultContainer">
+        <div class="urlResult-container">
+          <div class="urlContainer">
+            <!--<img src="/web/src/images/link.svg" alt="link" class="link__img">-->
+            <a class="urlResult" href="" id="stringLink"></a>
+          </div>
+          <button class="copy-button" id="copyButton">
+            Copy
+          </button>
+        </div>
+        <div class="qrcode-result">
+          <img src="" alt="QR-code" class="qrcode" id="qrCode">
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/src/scripts/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Git
+.git
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Docs
+README.md
+LICENSE
+
+# Go workspace
+go.work
+
+# Local env
+.env
+.env.local
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
